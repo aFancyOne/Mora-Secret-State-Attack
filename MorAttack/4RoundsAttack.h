@@ -1,13 +1,13 @@
-// Атака против 4 раундов (часть атаки против 5 раундов, необходимая для нахождения Z4)
+п»ї// РђС‚Р°РєР° РїСЂРѕС‚РёРІ 4 СЂР°СѓРЅРґРѕРІ (С‡Р°СЃС‚СЊ Р°С‚Р°РєРё РїСЂРѕС‚РёРІ 5 СЂР°СѓРЅРґРѕРІ, РЅРµРѕР±С…РѕРґРёРјР°СЏ РґР»СЏ РЅР°С…РѕР¶РґРµРЅРёСЏ Z4)
 
 class FourRoundsAttack{
 
 private:
 
     uint64_t Z4 = 0;
-    uint64_t operationsCounter4 = 0; // Переменная для подсчёта количества операций в атаке на 4 раунда
+    uint64_t operationsCounter4 = 0; // РџРµСЂРµРјРµРЅРЅР°СЏ РґР»СЏ РїРѕРґСЃС‡С‘С‚Р° РєРѕР»РёС‡РµСЃС‚РІР° РѕРїРµСЂР°С†РёР№ РІ Р°С‚Р°РєРµ РЅР° 4 СЂР°СѓРЅРґР°
 
-    // Формирование 60-битного значения из 4 битов (полубайта) каждой из 15 "разностей" в d-"разности" dX3.
+    // Р¤РѕСЂРјРёСЂРѕРІР°РЅРёРµ 60-Р±РёС‚РЅРѕРіРѕ Р·РЅР°С‡РµРЅРёСЏ РёР· 4 Р±РёС‚РѕРІ (РїРѕР»СѓР±Р°Р№С‚Р°) РєР°Р¶РґРѕР№ РёР· 15 "СЂР°Р·РЅРѕСЃС‚РµР№" РІ d-"СЂР°Р·РЅРѕСЃС‚Рё" dX3.
     uint64_t halfBytesFormation(const std::array<uint64_t, 15>& dDiff, int num) {
         uint64_t HalfBytes = 0;
 
@@ -25,29 +25,29 @@ private:
         std::array<uint64_t, 15> dCurrent;
         uint64_t y;
 
-        dCurrent = dP(dL_Inverted(dR)); // Обратные L и P преобразования dR -> dZ4
+        dCurrent = dP(dL_Inverted(dR)); // РћР±СЂР°С‚РЅС‹Рµ L Рё P РїСЂРµРѕР±СЂР°Р·РѕРІР°РЅРёСЏ dR -> dZ4
 
-        // S-преобразование dZ4 -> dY4
+        // S-РїСЂРµРѕР±СЂР°Р·РѕРІР°РЅРёРµ dZ4 -> dY4
         for (uint32_t i = 0; i <= 0xffff; i++) {
             y = i;
             y <<= (64 - 16 * columnNum);
             backwardBuff.insert(backwardBuff.end(), dS_Inverted(dCurrent, y));
         }
 
-         // Обратные L и P преобразования dX4 -> dZ3
+         // РћР±СЂР°С‚РЅС‹Рµ L Рё P РїСЂРµРѕР±СЂР°Р·РѕРІР°РЅРёСЏ dX4 -> dZ3
         for (uint32_t i = 0; i < backwardBuff.size(); i++) {
             backwardBuff.at(i) = dL_Inverted(backwardBuff.at(i));
             backwardBuff.at(i) = dP(backwardBuff.at(i));
         }
 
-        // S-преобразование dZ3 -> dY3
+        // S-РїСЂРµРѕР±СЂР°Р·РѕРІР°РЅРёРµ dZ3 -> dY3
         for (uint8_t i = 0; i <= 0xf; i++) {
             y = i;
             y <<= (64 - 4 * columnNum);
 
             uint64_t dX3c = halfBytesFormation(dX3, columnNum);
             for (uint32_t j = 0; j < backwardBuff.size(); j++) {
-                operationsCounter4 += 15; // Сложность одного (из 4*2^20) варианта полубайта Z4
+                operationsCounter4 += 15; // РЎР»РѕР¶РЅРѕСЃС‚СЊ РѕРґРЅРѕРіРѕ (РёР· 4*2^20) РІР°СЂРёР°РЅС‚Р° РїРѕР»СѓР±Р°Р№С‚Р° Z4
                 if (dX3c == halfBytesFormation(dS_Inverted(backwardBuff.at(j), y), columnNum)) {
                     y = j;
                     y <<= (64 - 16 * columnNum);
@@ -61,13 +61,13 @@ private:
         return false;
     }
 
-    // Построчное угадывание Z4
+    // РџРѕСЃС‚СЂРѕС‡РЅРѕРµ СѓРіР°РґС‹РІР°РЅРёРµ Z4
     void Z4Guessing(const std::array<uint64_t, 15>& dR, const std::array<uint64_t, 15>& dX3) {
 
         std::cout << "Guessing of Z4 has started " << std::endl;
         unsigned int Z4G_start_time = clock();
 
-        // На каждую строчку свой поток (всего 4 потока)
+        // РќР° РєР°Р¶РґСѓСЋ СЃС‚СЂРѕС‡РєСѓ СЃРІРѕР№ РїРѕС‚РѕРє (РІСЃРµРіРѕ 4 РїРѕС‚РѕРєР°)
         std::thread t_firstRow(&FourRoundsAttack::backwardPropagations, this, std::ref(dR), std::ref(dX3), 1);
         std::thread t_secondRow(&FourRoundsAttack::backwardPropagations, this, std::ref(dR), std::ref(dX3), 2);
         std::thread t_thirdRow(&FourRoundsAttack::backwardPropagations, this, std::ref(dR), std::ref(dX3), 3);
@@ -85,7 +85,7 @@ public:
 
     uint64_t start(const std::array<uint64_t, 16>& R, const std::array<uint64_t, 15>& dX3, uint64_t& operationsCounter5) {
 
-        // Поиск 15 разниц dR
+        // РџРѕРёСЃРє 15 СЂР°Р·РЅРёС† dR
         std::array<uint64_t, 15> dR;
         for (int i = 1; i < 16; i++) {
             dR[i - 1] = R[0] ^ R[i];
